@@ -2,17 +2,21 @@
 //
 // Le portail et les outils doivent etre a la MEME adresse pour partager une
 // seule connexion : un navigateur isole les donnees de chaque adresse. Tant
-// qu'Auréo a son propre deploiement, le portail le relaie sous /aureo/ :
+// que chaque outil a son propre deploiement, le portail le relaie sous son
+// dossier (/aureo/, /meridien/...). Par exemple pour Auréo :
 //   portail/aureo/          -> Auréo /
 //   portail/aureo/assets/x  -> Auréo /assets/x
-// Auréo est construit avec des chemins relatifs (base "./") : il fonctionne a
-// l'identique a sa propre adresse et sous /aureo/.
+// Les outils sont construits avec des chemins relatifs (base "./") : ils
+// fonctionnent a l'identique a leur propre adresse et sous le portail.
 //
 // Sur le serveur XGS, ce relais sera remplace par la configuration du serveur
 // web (un dossier par outil), sans rien changer aux applications.
 
 const OUTILS_RELAYES = [
   { prefixe: "/aureo", origine: (env) => env.AUREO_ORIGIN },
+  { prefixe: "/meridien", origine: (env) => env.MERIDIEN_ORIGIN },
+  { prefixe: "/salaire", origine: (env) => env.SALAIRE_ORIGIN },
+  { prefixe: "/horizon", origine: (env) => env.HORIZON_ORIGIN },
 ];
 
 export default {

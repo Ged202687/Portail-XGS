@@ -17,7 +17,9 @@ Le portail sert donc les outils sous des dossiers de sa propre adresse :
 |---|---|
 | `/` | le portail : connexion, puis page d'accueil |
 | `/aureo/` | Auréo |
-| `/meridien/`, `/salaire/`, `/horizon/` | à venir, un outil à la fois |
+| `/meridien/` | Méridien |
+| `/salaire/` | Mon salaire |
+| `/horizon/` | Horizon |
 
 La session est gardée par le client officiel Supabase, sous sa clé standard
 (`sb-<projet>-auth-token`). Tout outil servi sous le portail et qui utilise ce
@@ -32,22 +34,30 @@ Auréo, l'agent passe aussi « déconnecté » et sa pause en cours est close.
 ## Développement
 
 ```bash
-# 1. Construire Auréo : le portail le sert en local sous /aureo/
+# 1. Construire les outils : le portail les sert en local sous leur dossier
 cd ../aureo-app && npm run build
+cd ../Meridien-XGS && npm run build
+cd ../Salaire-agent-XGS && npm run build
+cd ../Horizon-XGS && npm run build
 
 # 2. Lancer le portail
 cd ../Portail-XGS && npm install && npm run dev
-# -> http://localhost:5180 ; Auréo sous http://localhost:5180/aureo/
+# -> http://localhost:5180 ; chaque outil sous son dossier
 ```
 
-Autre emplacement d'Auréo construit : variable `AUREO_DIST`.
+Autre emplacement d'un outil construit : variables `AUREO_DIST`,
+`MERIDIEN_DIST`, `SALAIRE_DIST`, `HORIZON_DIST`.
 
 ## Déploiement (Cloudflare)
 
 Le portail est un Worker avec ses fichiers statiques (`wrangler.jsonc`).
-Le Worker (`src/worker.js`) relaie `/aureo/*` vers le déploiement actuel
-d'Auréo : **renseigner `AUREO_ORIGIN`** dans `wrangler.jsonc` avec l'adresse
-réelle d'Auréo (Cloudflare, Workers & Pages, aureo-app).
+Le Worker (`src/worker.js`) relaie chaque dossier vers le déploiement actuel
+de l'outil. Les adresses sont dans `wrangler.jsonc` (`AUREO_ORIGIN`,
+`MERIDIEN_ORIGIN`, `SALAIRE_ORIGIN`, `HORIZON_ORIGIN`).
+
+Horizon navigue par adresses (`/horizon/jour`, `/horizon/agent/12`) : son
+`index.html` pose une balise `<base>` pour que ses chemins relatifs partent de
+`/horizon/` sous le portail, et son routeur prend `/horizon` comme préfixe.
 
 Auréo reste accessible à son ancienne adresse, avec sa propre page de
 connexion, tant que les agents n'ont pas pris l'habitude du portail.

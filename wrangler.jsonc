@@ -6,13 +6,18 @@
     "directory": "./dist",
     "binding": "ASSETS",
     "not_found_handling": "single-page-application",
-    // /aureo/ n'est pas un fichier du portail : ces adresses passent d'abord
-    // par le worker, qui les relaie vers Auréo.
-    "run_worker_first": ["/aureo", "/aureo/*"]
+    // Les dossiers des outils ne sont pas des fichiers du portail : ces
+    // adresses passent d'abord par le worker, qui les relaie vers l'outil.
+    "run_worker_first": [
+      "/aureo", "/aureo/*", "/meridien", "/meridien/*",
+      "/salaire", "/salaire/*", "/horizon", "/horizon/*"
+    ]
   },
   "vars": {
-    // Adresse actuelle d'Auréo. A remplacer par l'adresse reelle de son
-    // deploiement Cloudflare (Workers & Pages > aureo-app).
-    "AUREO_ORIGIN": "https://aureo-app.A-REMPLACER.workers.dev"
+    // Adresses actuelles des outils (Cloudflare, Workers & Pages).
+    "AUREO_ORIGIN": "https://aureo-app.kgedeon.workers.dev",
+    "MERIDIEN_ORIGIN": "https://meridien-xgs.kgedeon.workers.dev",
+    "SALAIRE_ORIGIN": "https://salaire-agent-xgs.kgedeon.workers.dev",
+    "HORIZON_ORIGIN": "https://horizon-xgs.kgedeon.workers.dev"
   }
 }
