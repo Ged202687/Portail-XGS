@@ -13,6 +13,15 @@
       "/salaire", "/salaire/*", "/horizon", "/horizon/*"
     ]
   },
+  // Liaisons de service : le portail joint chaque outil directement, Worker a
+  // Worker. "service" est le nom du Worker de l'outil dans Cloudflare
+  // (Workers & Pages), celui qui apparait dans son adresse workers.dev.
+  "services": [
+    { "binding": "AUREO", "service": "aureo-app" },
+    { "binding": "MERIDIEN", "service": "meridien-xgs" },
+    { "binding": "SALAIRE", "service": "salaire-agent-xgs" },
+    { "binding": "HORIZON", "service": "horizon-xgs" }
+  ],
   "vars": {
     // Adresses actuelles des outils (Cloudflare, Workers & Pages).
     "AUREO_ORIGIN": "https://aureo-app.kgedeon.workers.dev",

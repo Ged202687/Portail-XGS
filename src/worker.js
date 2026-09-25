@@ -11,12 +11,23 @@
 //
 // Sur le serveur XGS, ce relais sera remplace par la configuration du serveur
 // web (un dossier par outil), sans rien changer aux applications.
+//
+// Comment le portail joint l'outil :
+//   - par une liaison de service (services dans wrangler.jsonc) : l'appel va
+//     directement d'un Worker a l'autre, dans le compte Cloudflare. C'est
+//     indispensable entre Workers d'un meme compte : Cloudflare ne laisse pas
+//     un Worker en appeler un autre par son adresse workers.dev (la reponse
+//     est alors une page "There is nothing here yet") ;
+//   - a defaut de liaison, par l'adresse de l'outil (vars ..._ORIGIN), pour
+//     un outil heberge ailleurs.
+// Dans les deux cas l'adresse sert a construire la requete : elle donne a
+// l'outil le chemin demande, et permet de reconnaitre ses redirections.
 
 const OUTILS_RELAYES = [
-  { prefixe: "/aureo", origine: (env) => env.AUREO_ORIGIN },
-  { prefixe: "/meridien", origine: (env) => env.MERIDIEN_ORIGIN },
-  { prefixe: "/salaire", origine: (env) => env.SALAIRE_ORIGIN },
-  { prefixe: "/horizon", origine: (env) => env.HORIZON_ORIGIN },
+  { prefixe: "/aureo", service: "AUREO", origine: "AUREO_ORIGIN" },
+  { prefixe: "/meridien", service: "MERIDIEN", origine: "MERIDIEN_ORIGIN" },
+  { prefixe: "/salaire", service: "SALAIRE", origine: "SALAIRE_ORIGIN" },
+  { prefixe: "/horizon", service: "HORIZON", origine: "HORIZON_ORIGIN" },
 ];
 
 export default {
@@ -28,8 +39,12 @@ export default {
         return Response.redirect(`${url.origin}${outil.prefixe}/${url.search}`, 301);
       }
       if (url.pathname.startsWith(`${outil.prefixe}/`)) {
-        const cible = new URL(url.pathname.slice(outil.prefixe.length) + url.search, outil.origine(env));
-        const reponse = await fetch(new Request(cible, request), { redirect: "manual" });
+        const cible = new URL(url.pathname.slice(outil.prefixe.length) + url.search, env[outil.origine]);
+        const requete = new Request(cible, request);
+        const service = env[outil.service];
+        const reponse = service
+          ? await service.fetch(requete, { redirect: "manual" })
+          : await fetch(requete, { redirect: "manual" });
         // Une redirection de l'outil vers sa propre adresse ramenerait
         // l'agent hors du portail : on la ramene sous le prefixe.
         const location = reponse.headers.get("Location");

@@ -51,9 +51,13 @@ Autre emplacement d'un outil construit : variables `AUREO_DIST`,
 ## Déploiement (Cloudflare)
 
 Le portail est un Worker avec ses fichiers statiques (`wrangler.jsonc`).
-Le Worker (`src/worker.js`) relaie chaque dossier vers le déploiement actuel
-de l'outil. Les adresses sont dans `wrangler.jsonc` (`AUREO_ORIGIN`,
-`MERIDIEN_ORIGIN`, `SALAIRE_ORIGIN`, `HORIZON_ORIGIN`).
+Le Worker (`src/worker.js`) relaie chaque dossier vers le Worker de l'outil,
+par une **liaison de service** (`services` dans `wrangler.jsonc`) : Cloudflare
+ne laisse pas un Worker en appeler un autre du même compte par son adresse
+`workers.dev`. Le nom de service est celui du Worker de l'outil dans
+Cloudflare. Les adresses (`AUREO_ORIGIN`, `MERIDIEN_ORIGIN`,
+`SALAIRE_ORIGIN`, `HORIZON_ORIGIN`) servent à construire les requêtes, et de
+repli pour un outil hébergé ailleurs.
 
 Horizon navigue par adresses (`/horizon/jour`, `/horizon/agent/12`) : son
 `index.html` pose une balise `<base>` pour que ses chemins relatifs partent de
