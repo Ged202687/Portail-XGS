@@ -8,9 +8,11 @@
     "not_found_handling": "single-page-application",
     // Les dossiers des outils ne sont pas des fichiers du portail : ces
     // adresses passent d'abord par le worker, qui les relaie vers l'outil.
+    // /acces/ : etat de l'acces aux outils du plateau (voir src/worker.js).
     "run_worker_first": [
       "/aureo", "/aureo/*", "/meridien", "/meridien/*",
-      "/salaire", "/salaire/*", "/horizon", "/horizon/*"
+      "/salaire", "/salaire/*", "/horizon", "/horizon/*",
+      "/acces/*"
     ]
   },
   // Liaisons de service : le portail joint chaque outil directement, Worker a
@@ -23,10 +25,24 @@
     { "binding": "HORIZON", "service": "horizon-xgs" }
   ],
   "vars": {
-    // Adresses actuelles des outils (Cloudflare, Workers & Pages).
-    "AUREO_ORIGIN": "https://aureo-app.kgedeon.workers.dev",
+    // Adresses des outils. Auréo et Horizon ne sont joignables que par le
+    // portail : leur adresse workers.dev renvoie vers lui, pour que la regle du
+    // plateau ne puisse pas etre contournee. Le portail les appelle donc sous
+    // un nom interne (.interne), que seule la liaison de service atteint.
+    "AUREO_ORIGIN": "https://aureo.interne",
     "MERIDIEN_ORIGIN": "https://meridien-xgs.kgedeon.workers.dev",
     "SALAIRE_ORIGIN": "https://salaire-agent-xgs.kgedeon.workers.dev",
-    "HORIZON_ORIGIN": "https://horizon-xgs.kgedeon.workers.dev"
+    "HORIZON_ORIGIN": "https://horizon.interne",
+
+    // Adresses IP publiques du plateau, separees par des virgules ; une plage
+    // s'ecrit 41.202.10.0/24. Vide : Auréo et Horizon restent ouverts partout.
+    "IP_PLATEAU": "",
+
+    // Pour verifier le role d'un administrateur hors du plateau. Cle publique
+    // (la meme que dans le navigateur). Le secret qui signe le jeton hors site
+    // est ACCES_SECRET : un secret du Worker (wrangler secret put ACCES_SECRET),
+    // jamais ecrit ici.
+    "SUPABASE_URL": "https://fipvndiueabrehsmqxth.supabase.co",
+    "SUPABASE_KEY": "sb_publishable_aNR2zGeJS9UgYLnvsvtVaw_tItHLC10"
   }
 }

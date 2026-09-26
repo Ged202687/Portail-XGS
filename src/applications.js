@@ -10,6 +10,9 @@ import { PhoneCall, CalendarClock, Wallet, Activity } from "lucide-react";
 //
 // Tous les outils sont visibles par tous pour commencer : chaque outil
 // applique deja ses propres droits une fois ouvert.
+//
+// surSite : l'outil ne s'ouvre que depuis le reseau du plateau (sauf pour un
+// administrateur) ; la regle est appliquee par le worker du portail.
 export const APPLICATIONS = [
   {
     id: "aureo",
@@ -17,6 +20,7 @@ export const APPLICATIONS = [
     description: "Centre d'appels : vos fiches, vos qualifications, vos résultats.",
     url: "/aureo/",
     icone: PhoneCall,
+    surSite: true,
   },
   {
     id: "meridien",
@@ -38,5 +42,6 @@ export const APPLICATIONS = [
     description: "Suivi d'assiduité, à partir du passage en production dans Auréo.",
     url: "/horizon/",
     icone: Activity,
+    surSite: true,
   },
 ];

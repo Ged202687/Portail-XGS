@@ -132,6 +132,7 @@ export default function App() {
       try { await supabase.rpc("set_my_status", { p_statut: "deconnecte" }); } catch {}
     }
     try { localStorage.removeItem("aureo_ouverture"); } catch {}
+    await finAccesHorsSite();
     await supabase.auth.signOut();
     setProfil(null);
     setEtat("connexion");
@@ -290,10 +291,39 @@ function NouveauMotDePasse({ onFait, onDeconnexion }) {
   );
 }
 
+/* ---------------------------------- acces aux outils du plateau ---------------------------------- */
+
+// Auréo et Horizon ne s'ouvrent que depuis le plateau, sauf pour un
+// administrateur. Le worker du portail applique la regle ; il donne ici l'etat
+// (sur le plateau ou non) et pose le jeton hors site d'un administrateur.
+// Sans reponse (developpement local, coupure), les tuiles restent ouvertes :
+// c'est le worker qui decide de toute facon a l'ouverture de l'outil.
+async function statutAccesPlateau() {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    const r = await fetch("/acces/statut", {
+      method: "POST",
+      headers: session ? { Authorization: `Bearer ${session.access_token}` } : {},
+      credentials: "same-origin",
+    });
+    if (!r.ok || !(r.headers.get("Content-Type") || "").includes("application/json")) return null;
+    return await r.json();
+  } catch {
+    return null;
+  }
+}
+
+async function finAccesHorsSite() {
+  try { await fetch("/acces/fin", { method: "POST", credentials: "same-origin" }); } catch {}
+}
+
 /* ---------------------------------- accueil ---------------------------------- */
 
 function Accueil({ profil, onDeconnexion }) {
   const [occupe, setOccupe] = useState(false);
+  const [acces, setAcces] = useState(null);
+  useEffect(() => { statutAccesPlateau().then(setAcces); }, []);
+  const horsPlateau = Boolean(acces?.restreint && !acces.surSite);
   // Les noms sont saisis "NOM Prénoms" : le prénom est le premier mot qui
   // n'est pas en majuscules ("GOLE Lou Bouzié" -> Lou). A defaut, le nom entier.
   const mots = (profil.nom || "").trim().split(/\s+/);
@@ -339,12 +369,24 @@ function Accueil({ profil, onDeconnexion }) {
         <h1 className="disp" style={{ fontSize: 40, fontWeight: 700, margin: "8px 0 0", lineHeight: 1.1 }}>
           {salut}{prenom ? ` ${prenom}` : ""}<span style={{ color: C.soleil }}>.</span>
         </h1>
-        <p style={{ fontSize: 15, color: C.lavande, marginTop: 12, marginBottom: 40, maxWidth: 520, lineHeight: 1.55 }}>
+        <p style={{ fontSize: 15, color: C.lavande, marginTop: 12, marginBottom: horsPlateau ? 16 : 40, maxWidth: 520, lineHeight: 1.55 }}>
           Choisissez un outil : il s'ouvre dans un nouvel onglet, et vous y êtes déjà connecté.
         </p>
+        {horsPlateau && (
+          <div style={{ display: "flex", alignItems: "center", gap: 10, maxWidth: 620, marginBottom: 32, background: C.soleilVoile, border: "1px solid rgba(253,207,79,0.3)", borderRadius: 12, padding: "10px 14px", fontSize: 13, color: C.blanc, lineHeight: 1.5 }}>
+            <Lock size={15} color={C.soleil} style={{ flexShrink: 0 }} />
+            {acces.horsSite
+              ? "Vous êtes hors du plateau : Auréo et Horizon restent ouverts pour vous, en tant qu'administrateur."
+              : "Vous êtes hors du plateau : Auréo et Horizon ne s'ouvrent que depuis le réseau XGS. Méridien et Mon salaire restent disponibles."}
+          </div>
+        )}
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 16 }}>
-          {APPLICATIONS.map((a) => <Tuile key={a.id} app={a} />)}
+          {APPLICATIONS.map((a) => (
+            <Tuile key={a.id} app={a}
+              bloque={a.surSite && horsPlateau && !acces.horsSite}
+              horsSite={a.surSite && horsPlateau && acces.horsSite} />
+          ))}
         </div>
       </main>
 
@@ -355,9 +397,9 @@ function Accueil({ profil, onDeconnexion }) {
   );
 }
 
-function Tuile({ app }) {
+function Tuile({ app, bloque, horsSite }) {
   const Icone = app.icone;
-  const disponible = Boolean(app.url);
+  const disponible = Boolean(app.url) && !bloque;
   const externe = disponible && /^https?:\/\//.test(app.url);
   const contenu = (
     <>
@@ -367,9 +409,11 @@ function Tuile({ app }) {
       <div className="disp" style={{ fontSize: 19, fontWeight: 600, color: disponible ? C.blanc : C.lavande }}>{app.nom}</div>
       <div style={{ fontSize: 13.5, color: C.lavande, marginTop: 6, lineHeight: 1.5, flex: 1 }}>{app.description}</div>
       <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 20, fontSize: 12.5, fontWeight: 600, color: disponible ? C.soleil : C.lavandeDouce }}>
-        {!disponible ? "Bientôt accessible depuis le portail" : (
+        {bloque ? (
+          <><Lock size={13} /> Sur le plateau uniquement</>
+        ) : !disponible ? "Bientôt accessible depuis le portail" : (
           <>
-            {externe ? "Ouvrir (connexion séparée)" : "Ouvrir"}
+            {externe ? "Ouvrir (connexion séparée)" : horsSite ? "Ouvrir (hors plateau)" : "Ouvrir"}
             <span className="ouvrir" style={{ display: "inline-flex" }}>{externe ? <ExternalLink size={14} /> : <ArrowRight size={14} />}</span>
           </>
         )}
