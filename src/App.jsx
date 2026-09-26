@@ -3,39 +3,63 @@ import { Loader2, Lock, AlertTriangle, LogOut, ExternalLink, ArrowRight } from "
 import { supabase, emailDepuisIdentifiant } from "./supabase.js";
 import { APPLICATIONS } from "./applications.js";
 
-// Memes teintes et polices qu'Auréo : le portail est la porte d'entree des
-// outils, il doit leur ressembler.
+// Identite XGS, reprise du logo : un bleu nuit profond, le soleil jaune
+// dessine a la main, du blanc, et une typographie geometrique ronde (Poppins,
+// celle du nom "Xperience Global Services"). Le portail est la porte d'entree
+// de XGS : il porte ses couleurs, les outils gardent les leurs.
 const C = {
-  ink: "#12161F", inkSoft: "#1C2330", inkFaint: "#2A3242", canvas: "#F2F4F6",
-  surface: "#FFFFFF", border: "#E1E5EA", borderSoft: "#ECEEF1", text: "#12161F",
-  muted: "#63707F", mutedSoft: "#8894A3", amber: "#E0932B", amberSoft: "#FBF0DD",
-  red: "#C6493F", redSoft: "#FBEAE8",
-  nuit: "#000B53", soleil: "#FDCF4F",
+  nuit: "#000B53", nuitProfonde: "#00052E", nuitClaire: "#0B1766",
+  soleil: "#FDCF4F", soleilVoile: "rgba(253,207,79,0.14)",
+  blanc: "#FFFFFF", lavande: "#C7CBEB", lavandeDouce: "#8F94BC",
+  trait: "rgba(255,255,255,0.10)", carte: "rgba(255,255,255,0.05)",
+  champ: "#F2F4F8",
 };
-const FONTS = "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap";
+const FONTS = "https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Inter:wght@400;500;600&display=swap";
 
 const STYLES = `
   @import url('${FONTS}');
   * { box-sizing: border-box; }
-  body { margin: 0; font-family: 'IBM Plex Sans', sans-serif; }
-  .disp { font-family: 'Space Grotesk', sans-serif; }
+  body { margin: 0; font-family: 'Inter', sans-serif; background: ${C.nuitProfonde}; }
+  .disp { font-family: 'Poppins', sans-serif; letter-spacing: -0.01em; }
   button, input { font-family: inherit; }
-  button { cursor: pointer; transition: transform .15s ease-out, filter .15s ease-out; }
-  button:not(:disabled):hover { filter: brightness(.94); }
+  button { cursor: pointer; transition: transform .15s ease-out, filter .15s ease-out, border-color .15s ease-out, background-color .15s ease-out; }
+  button:not(:disabled):hover { filter: brightness(1.06); }
   button:not(:disabled):active { transform: scale(.98); }
   button:disabled { cursor: not-allowed; opacity: .55; }
-  :where(button, a, input, [tabindex]):focus-visible { outline: 2px solid ${C.amber} !important; outline-offset: 2px; }
-  .tuile { transition: transform .15s ease-out, box-shadow .15s ease-out, border-color .15s ease-out; }
-  a.tuile:hover { transform: translateY(-2px); box-shadow: 0 12px 28px -12px rgba(18,22,31,.28); border-color: ${C.amber}; }
-  a.tuile:active { transform: translateY(0); }
+  :where(button, a, input, [tabindex]):focus-visible { outline: 2px solid ${C.soleil} !important; outline-offset: 3px; }
+  .bouton-fantome:not(:disabled):hover { border-color: ${C.soleil} !important; filter: none; }
+  .tuile { transition: transform .18s ease-out, box-shadow .18s ease-out, border-color .18s ease-out, background-color .18s ease-out; }
+  .tuile .ouvrir { transition: transform .18s ease-out; }
+  a.tuile:hover { transform: translateY(-3px); background-color: rgba(255,255,255,0.09) !important; border-color: rgba(253,207,79,0.55) !important; box-shadow: 0 22px 44px -22px rgba(0,0,0,0.7); }
+  a.tuile:hover .ouvrir { transform: translateX(3px); }
+  a.tuile:active { transform: translateY(-1px); }
   @keyframes spin { to { transform: rotate(360deg); } }
   .animate-spin { animation: spin 1s linear infinite; }
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { transition-duration: .01ms !important; }
-    a.tuile:hover { transform: none; }
+    a.tuile:hover, a.tuile:hover .ouvrir { transform: none; }
     .animate-spin { animation: spin 1s linear infinite !important; }
   }
 `;
+
+// Le soleil du logo, en filigrane : rayons et cercle aux traits arrondis,
+// comme dessines a la main.
+function SoleilFiligrane({ taille = 520, style }) {
+  const rayons = Array.from({ length: 12 }, (_, i) => i * 30);
+  return (
+    <svg aria-hidden width={taille} height={taille} viewBox="0 0 200 200" style={{ position: "absolute", pointerEvents: "none", ...style }}>
+      <g fill="none" stroke={C.soleil} strokeLinecap="round">
+        <circle cx="100" cy="100" r="38" strokeWidth="5" />
+        {rayons.map((a) => (
+          <line key={a} x1="100" y1={a % 60 === 0 ? 34 : 40} x2="100" y2={a % 60 === 0 ? 14 : 24} strokeWidth="6" transform={`rotate(${a} 100 100)`} />
+        ))}
+        <path d="M84 96 q5 -6 10 0" strokeWidth="4" />
+        <path d="M106 94 q5 -6 10 0" strokeWidth="4" />
+        <path d="M88 112 q12 10 24 0" strokeWidth="4" />
+      </g>
+    </svg>
+  );
+}
 
 const ROLES = {
   agent: "Agent", coach: "Coach", superviseur: "Superviseur",
@@ -130,11 +154,12 @@ function FondNuit({ children }) {
   return (
     <div style={{
       minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: 16,
-      background: `radial-gradient(circle at 18% 20%, #263070 0%, ${C.nuit} 45%, #00051F 100%)`,
+      background: `radial-gradient(circle at 18% 20%, #1A2A8C 0%, ${C.nuit} 45%, ${C.nuitProfonde} 100%)`,
       position: "relative", overflow: "hidden",
     }}>
       <div aria-hidden style={{ position: "absolute", width: 520, height: 520, borderRadius: "50%", background: C.soleil, opacity: 0.10, filter: "blur(90px)", top: -160, right: -140 }} />
       <div aria-hidden style={{ position: "absolute", width: 420, height: 420, borderRadius: "50%", background: "#3B4FA8", opacity: 0.22, filter: "blur(100px)", bottom: -160, left: -120 }} />
+      <SoleilFiligrane taille={460} style={{ top: -120, right: -120, opacity: 0.12 }} />
       <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 24, width: "100%", maxWidth: 360 }}>
         {children}
       </div>
@@ -153,10 +178,10 @@ function Chargement() {
 }
 
 const styleChamp = {
-  width: "100%", background: C.canvas, border: "1.5px solid transparent", borderRadius: 10,
-  padding: "12px 14px", fontSize: 13.5, marginTop: 6,
+  width: "100%", background: C.champ, border: "1.5px solid transparent", borderRadius: 10,
+  padding: "12px 14px", fontSize: 13.5, marginTop: 6, color: C.nuit,
 };
-const styleLibelle = { fontSize: 11, fontWeight: 600, color: "#8B93A3", letterSpacing: "0.02em", textTransform: "uppercase" };
+const styleLibelle = { fontSize: 11, fontWeight: 600, color: C.lavandeDouce, letterSpacing: "0.04em", textTransform: "uppercase" };
 const styleCarte = { background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", backdropFilter: "blur(20px)", borderRadius: 18, padding: 28, width: "100%", boxShadow: "0 30px 60px -20px rgba(0,0,0,0.5)" };
 const styleBoutonPrincipal = { width: "100%", background: C.soleil, color: "#00051F", border: "none", borderRadius: 10, padding: "12px 0", fontSize: 13.5, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 };
 
@@ -188,8 +213,8 @@ function Connexion({ onConnexion, erreurInitiale, retour }) {
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10 }}>
         <img src="/logo-xgs.png" alt="Xperience Global Services" style={{ width: 230, height: "auto", borderRadius: 12 }} />
         <div style={{ textAlign: "center" }}>
-          <div className="disp" style={{ fontSize: 14, fontWeight: 600, color: "#C9CEDA", letterSpacing: "0.04em", textTransform: "uppercase" }}>Portail XGS</div>
-          <p style={{ fontSize: 12.5, color: "#8B93A3", marginTop: 4, marginBottom: 0 }}>
+          <div className="disp" style={{ fontSize: 14, fontWeight: 600, color: C.soleil, letterSpacing: "0.12em", textTransform: "uppercase" }}>Portail XGS</div>
+          <p style={{ fontSize: 13, color: C.lavande, marginTop: 6, marginBottom: 0 }}>
             {outil ? `Connectez-vous pour ouvrir ${outil.nom}` : "Une seule connexion pour tous vos outils"}
           </p>
         </div>
@@ -212,7 +237,7 @@ function Connexion({ onConnexion, erreurInitiale, retour }) {
         </button>
       </form>
 
-      <p style={{ fontSize: 11, color: "#5C6577", lineHeight: 1.5, textAlign: "center", margin: 0 }}>
+      <p style={{ fontSize: 11.5, color: C.lavandeDouce, lineHeight: 1.5, textAlign: "center", margin: 0 }}>
         Votre identifiant est le même que dans Auréo. Les comptes sont créés par un administrateur.
       </p>
     </FondNuit>
@@ -273,41 +298,59 @@ function Accueil({ profil, onDeconnexion }) {
   // n'est pas en majuscules ("GOLE Lou Bouzié" -> Lou). A defaut, le nom entier.
   const mots = (profil.nom || "").trim().split(/\s+/);
   const prenom = mots.find((m) => /[a-zà-ÿ]/.test(m)) || profil.nom || "";
-  const heure = new Date().getHours();
-  const salut = heure < 18 ? "Bonjour" : "Bonsoir";
+  const maintenant = new Date();
+  const salut = maintenant.getHours() < 18 ? "Bonjour" : "Bonsoir";
+  const jour = maintenant.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
 
   return (
-    <div style={{ minHeight: "100vh", background: C.canvas, color: C.text }}>
-      <header style={{ background: C.ink, color: "#fff" }}>
-        <div style={{ maxWidth: 1040, margin: "0 auto", padding: "16px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
+    <div style={{
+      minHeight: "100vh", color: C.blanc, position: "relative", overflow: "hidden",
+      background: `radial-gradient(circle at 85% 0%, #1A2A8C 0%, ${C.nuit} 38%, ${C.nuitProfonde} 100%)`,
+      display: "flex", flexDirection: "column",
+    }}>
+      <div aria-hidden style={{ position: "absolute", width: 620, height: 620, borderRadius: "50%", background: C.soleil, opacity: 0.045, filter: "blur(120px)", top: -300, right: -220 }} />
+      <SoleilFiligrane taille={560} style={{ top: -150, right: -150, opacity: 0.13 }} />
+
+      <header style={{ position: "relative", zIndex: 1 }}>
+        <div style={{ maxWidth: 1080, margin: "0 auto", padding: "20px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0 }}>
-            <img src="/logo-xgs-carre.png" alt="" style={{ width: 32, height: 32, borderRadius: 7 }} />
-            <span className="disp" style={{ fontSize: 16, fontWeight: 700 }}>Portail XGS</span>
+            <img src="/logo-xgs-carre.png" alt="" style={{ width: 40, height: 40, borderRadius: 10, boxShadow: "0 0 0 1px rgba(255,255,255,0.12)" }} />
+            <div style={{ minWidth: 0 }}>
+              <div className="disp" style={{ fontSize: 16, fontWeight: 700, lineHeight: 1.1 }}>Portail XGS</div>
+              <div style={{ fontSize: 11, color: C.lavandeDouce }}>Xperience Global Services</div>
+            </div>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 16, minWidth: 0 }}>
             <div style={{ textAlign: "right", minWidth: 0 }}>
               <div style={{ fontSize: 13, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{profil.nom}</div>
-              <div style={{ fontSize: 11, color: "#8B93A3" }}>{ROLES[profil.role] || profil.role}</div>
+              <div style={{ fontSize: 11, color: C.lavandeDouce }}>{ROLES[profil.role] || profil.role}</div>
             </div>
-            <button onClick={async () => { setOccupe(true); await onDeconnexion(); }} disabled={occupe}
+            <button className="bouton-fantome" onClick={async () => { setOccupe(true); await onDeconnexion(); }} disabled={occupe}
               title="Vous déconnecte aussi de tous les outils ouverts"
-              style={{ display: "flex", alignItems: "center", gap: 6, background: C.inkSoft, color: "#DDE1E7", border: `1px solid ${C.inkFaint}`, borderRadius: 8, padding: "8px 12px", fontSize: 12.5, fontWeight: 600, flexShrink: 0 }}>
+              style={{ display: "flex", alignItems: "center", gap: 6, background: "transparent", color: C.blanc, border: `1px solid ${C.trait}`, borderRadius: 999, padding: "8px 14px", fontSize: 12.5, fontWeight: 600, flexShrink: 0 }}>
               {occupe ? <Loader2 size={13} className="animate-spin" /> : <LogOut size={13} />} Se déconnecter
             </button>
           </div>
         </div>
       </header>
 
-      <main style={{ maxWidth: 1040, margin: "0 auto", padding: "40px 24px" }}>
-        <h1 className="disp" style={{ fontSize: 26, fontWeight: 700, margin: 0 }}>{salut}{prenom ? ` ${prenom}` : ""}</h1>
-        <p style={{ fontSize: 13.5, color: C.muted, marginTop: 6, marginBottom: 32 }}>
+      <main style={{ position: "relative", zIndex: 1, flex: 1, width: "100%", maxWidth: 1080, margin: "0 auto", padding: "48px 24px 32px" }}>
+        <div style={{ fontSize: 12, fontWeight: 600, color: C.soleil, letterSpacing: "0.12em", textTransform: "uppercase" }}>{jour}</div>
+        <h1 className="disp" style={{ fontSize: 40, fontWeight: 700, margin: "8px 0 0", lineHeight: 1.1 }}>
+          {salut}{prenom ? ` ${prenom}` : ""}<span style={{ color: C.soleil }}>.</span>
+        </h1>
+        <p style={{ fontSize: 15, color: C.lavande, marginTop: 12, marginBottom: 40, maxWidth: 520, lineHeight: 1.55 }}>
           Choisissez un outil : il s'ouvre dans un nouvel onglet, et vous y êtes déjà connecté.
         </p>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(230px, 1fr))", gap: 16 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 16 }}>
           {APPLICATIONS.map((a) => <Tuile key={a.id} app={a} />)}
         </div>
       </main>
+
+      <footer style={{ position: "relative", zIndex: 1, textAlign: "center", padding: "24px", fontSize: 11.5, color: C.lavandeDouce }}>
+        Xperience Global Services · Abidjan
+      </footer>
     </div>
   );
 }
@@ -318,19 +361,25 @@ function Tuile({ app }) {
   const externe = disponible && /^https?:\/\//.test(app.url);
   const contenu = (
     <>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-        <div style={{ width: 40, height: 40, borderRadius: 10, background: disponible ? C.amberSoft : C.borderSoft, display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <Icone size={18} color={disponible ? C.amber : C.mutedSoft} />
-        </div>
-        {disponible && (externe ? <ExternalLink size={14} color={C.mutedSoft} /> : <ArrowRight size={14} color={C.mutedSoft} />)}
+      <div style={{ width: 48, height: 48, borderRadius: 14, background: disponible ? C.soleil : C.trait, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 20, boxShadow: disponible ? "0 10px 24px -10px rgba(253,207,79,0.55)" : "none" }}>
+        <Icone size={22} color={disponible ? C.nuit : C.lavandeDouce} strokeWidth={2.2} />
       </div>
-      <div className="disp" style={{ fontSize: 16, fontWeight: 700, color: disponible ? C.text : C.muted }}>{app.nom}</div>
-      <div style={{ fontSize: 12.5, color: C.muted, marginTop: 4, lineHeight: 1.45 }}>{app.description}</div>
-      {!disponible && <div style={{ fontSize: 11, color: C.mutedSoft, marginTop: 12, fontWeight: 600 }}>Bientôt accessible depuis le portail</div>}
-      {externe && <div style={{ fontSize: 11, color: C.mutedSoft, marginTop: 12 }}>Connexion séparée pour l'instant</div>}
+      <div className="disp" style={{ fontSize: 19, fontWeight: 600, color: disponible ? C.blanc : C.lavande }}>{app.nom}</div>
+      <div style={{ fontSize: 13.5, color: C.lavande, marginTop: 6, lineHeight: 1.5, flex: 1 }}>{app.description}</div>
+      <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 20, fontSize: 12.5, fontWeight: 600, color: disponible ? C.soleil : C.lavandeDouce }}>
+        {!disponible ? "Bientôt accessible depuis le portail" : (
+          <>
+            {externe ? "Ouvrir (connexion séparée)" : "Ouvrir"}
+            <span className="ouvrir" style={{ display: "inline-flex" }}>{externe ? <ExternalLink size={14} /> : <ArrowRight size={14} />}</span>
+          </>
+        )}
+      </div>
     </>
   );
-  const style = { display: "block", background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, padding: 20, textDecoration: "none", color: "inherit" };
+  const style = {
+    display: "flex", flexDirection: "column", minHeight: 220, background: C.carte, border: `1px solid ${C.trait}`,
+    borderRadius: 18, padding: 24, textDecoration: "none", color: "inherit", backdropFilter: "blur(12px)",
+  };
 
   // Un lien, et non un bouton : il s'ouvre dans un nouvel onglet, et se laisse
   // aussi ouvrir au clic molette ou au clavier comme n'importe quel lien.
