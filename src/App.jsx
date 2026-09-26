@@ -382,7 +382,7 @@ function Accueil({ profil, onDeconnexion }) {
         )}
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 16 }}>
-          {APPLICATIONS.map((a) => (
+          {APPLICATIONS.filter((a) => !a.roles || a.roles.includes(profil.role)).map((a) => (
             <Tuile key={a.id} app={a}
               bloque={a.surSite && horsPlateau && !acces.horsSite}
               horsSite={a.surSite && horsPlateau && acces.horsSite} />

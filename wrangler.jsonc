@@ -11,7 +11,7 @@
     // /acces/ : etat de l'acces aux outils du plateau (voir src/worker.js).
     "run_worker_first": [
       "/aureo", "/aureo/*", "/meridien", "/meridien/*",
-      "/salaire", "/salaire/*", "/horizon", "/horizon/*",
+      "/salaire", "/salaire/*", "/horizon", "/horizon/*", "/zenith", "/zenith/*",
       "/acces/*"
     ]
   },
@@ -22,10 +22,11 @@
     { "binding": "AUREO", "service": "aureo-app" },
     { "binding": "MERIDIEN", "service": "meridien-xgs" },
     { "binding": "SALAIRE", "service": "salaire-agent-xgs" },
-    { "binding": "HORIZON", "service": "horizon-xgs" }
+    { "binding": "HORIZON", "service": "horizon-xgs" },
+    { "binding": "ZENITH", "service": "zenith-xgs" }
   ],
   "vars": {
-    // Adresses des outils. Auréo et Horizon ne sont joignables que par le
+    // Adresses des outils. Auréo, Horizon et Zénith ne sont joignables que par le
     // portail : leur adresse workers.dev renvoie vers lui, pour que la regle du
     // plateau ne puisse pas etre contournee. Le portail les appelle donc sous
     // un nom interne (.interne), que seule la liaison de service atteint.
@@ -33,6 +34,7 @@
     "MERIDIEN_ORIGIN": "https://meridien-xgs.kgedeon.workers.dev",
     "SALAIRE_ORIGIN": "https://salaire-agent-xgs.kgedeon.workers.dev",
     "HORIZON_ORIGIN": "https://horizon.interne",
+    "ZENITH_ORIGIN": "https://zenith.interne",
 
     // Adresses IP publiques du plateau, separees par des virgules ; une plage
     // s'ecrit 41.202.10.0/24. Vide : Auréo et Horizon restent ouverts partout.

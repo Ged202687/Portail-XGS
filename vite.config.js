@@ -14,6 +14,7 @@ const OUTILS = [
   { prefixe: "/meridien", dist: path.resolve(process.env.MERIDIEN_DIST || "../Meridien-XGS/dist"), depot: "Meridien-XGS" },
   { prefixe: "/salaire", dist: path.resolve(process.env.SALAIRE_DIST || "../Salaire-agent-XGS/dist"), depot: "Salaire-agent-XGS" },
   { prefixe: "/horizon", dist: path.resolve(process.env.HORIZON_DIST || "../Horizon-XGS/dist"), depot: "Horizon-XGS" },
+  { prefixe: "/zenith", dist: path.resolve(process.env.ZENITH_DIST || "../Zenith-XGS/dist"), depot: "Zenith-XGS" },
 ];
 
 const TYPES = {

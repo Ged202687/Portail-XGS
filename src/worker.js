@@ -38,6 +38,8 @@ const OUTILS_RELAYES = [
   { prefixe: "/meridien", service: "MERIDIEN", origine: "MERIDIEN_ORIGIN" },
   { prefixe: "/salaire", service: "SALAIRE", origine: "SALAIRE_ORIGIN" },
   { prefixe: "/horizon", service: "HORIZON", origine: "HORIZON_ORIGIN", surSite: true, nom: "Horizon" },
+  // Zenith : pilotage reserve a la direction, qui passe la regle du plateau.
+  { prefixe: "/zenith", service: "ZENITH", origine: "ZENITH_ORIGIN", surSite: true, nom: "Zénith" },
 ];
 
 const COOKIE_HORS_SITE = "xgs_hors_site";

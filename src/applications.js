@@ -1,4 +1,4 @@
-import { PhoneCall, CalendarClock, Wallet, Activity } from "lucide-react";
+import { PhoneCall, CalendarClock, Wallet, Activity, Telescope } from "lucide-react";
 
 // Les outils XGS affiches sur la page d'accueil.
 //
@@ -13,6 +13,9 @@ import { PhoneCall, CalendarClock, Wallet, Activity } from "lucide-react";
 //
 // surSite : l'outil ne s'ouvre que depuis le reseau du plateau (sauf pour un
 // administrateur) ; la regle est appliquee par le worker du portail.
+//
+// roles : la tuile n'est affichee qu'a ces roles (Zenith : la direction).
+// L'outil verifie lui-meme le role a l'ouverture.
 export const APPLICATIONS = [
   {
     id: "aureo",
@@ -43,5 +46,14 @@ export const APPLICATIONS = [
     url: "/horizon/",
     icone: Activity,
     surSite: true,
+  },
+  {
+    id: "zenith",
+    nom: "Zénith",
+    description: "Pilotage des équipes : performances, présence et turnover.",
+    url: "/zenith/",
+    icone: Telescope,
+    surSite: true,
+    roles: ["admin", "super_admin"],
   },
 ];
