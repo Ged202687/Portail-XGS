@@ -24,8 +24,9 @@
 // l'outil le chemin demande, et permet de reconnaitre ses redirections.
 //
 // Outils reserves au plateau (surSite) : Auréo et Horizon ne s'ouvrent que
-// depuis le reseau du plateau (IP_PLATEAU), sauf pour un administrateur ou un
-// super administrateur connecte au portail, qui recoit pour cela un jeton
+// depuis le reseau du plateau (IP_PLATEAU), sauf pour un administrateur, un
+// super administrateur ou la direction generale (en lecture seule) connecte
+// au portail, qui recoit pour cela un jeton
 // signe (cookie xgs_hors_site). Meridien et Mon Salaire restent ouverts : les
 // agents consultent leur planning et leur bulletin depuis chez eux.
 // Tant que IP_PLATEAU est vide, la regle n'est pas appliquee.
@@ -44,7 +45,7 @@ const OUTILS_RELAYES = [
 
 const COOKIE_HORS_SITE = "xgs_hors_site";
 const DUREE_HORS_SITE_SECONDES = 12 * 3600;
-const ROLES_HORS_SITE = ["admin", "super_admin"];
+const ROLES_HORS_SITE = ["admin", "super_admin", "direction"];
 
 export default {
   async fetch(request, env) {
@@ -247,7 +248,7 @@ function pageRefus(outil, request) {
 <body><div class="carte">
   <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#FDCF4F" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
   <h1>${outil.nom} s'utilise sur le plateau<span>.</span></h1>
-  <p>Cet outil n'est accessible que depuis le réseau du plateau XGS. Méridien et Mon salaire restent disponibles depuis chez vous. Administrateurs : connectez-vous au portail pour y accéder.</p>
+  <p>Cet outil n'est accessible que depuis le réseau du plateau XGS. Méridien et Mon salaire restent disponibles depuis chez vous. Administration et direction : connectez-vous au portail pour y accéder.</p>
   <a href="/">Aller au portail</a>
 </div></body></html>`;
   return new Response(page, { status: 403, headers: { ...entetes, "Content-Type": "text/html; charset=utf-8" } });

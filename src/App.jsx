@@ -63,7 +63,7 @@ function SoleilFiligrane({ taille = 520, style }) {
 
 const ROLES = {
   agent: "Agent", coach: "Coach", superviseur: "Superviseur",
-  admin: "Administrateur", super_admin: "Super administrateur",
+  admin: "Administrateur", super_admin: "Super administrateur", direction: "Direction générale",
 };
 
 // Retour vers l'outil qui a envoye l'agent se connecter (?retour=/aureo/).
@@ -376,7 +376,7 @@ function Accueil({ profil, onDeconnexion }) {
           <div style={{ display: "flex", alignItems: "center", gap: 10, maxWidth: 620, marginBottom: 32, background: C.soleilVoile, border: "1px solid rgba(253,207,79,0.3)", borderRadius: 12, padding: "10px 14px", fontSize: 13, color: C.blanc, lineHeight: 1.5 }}>
             <Lock size={15} color={C.soleil} style={{ flexShrink: 0 }} />
             {acces.horsSite
-              ? "Vous êtes hors du plateau : Auréo et Horizon restent ouverts pour vous, en tant qu'administrateur."
+              ? "Vous êtes hors du plateau : Auréo, Horizon et Zénith restent ouverts pour vous (administration et direction)."
               : "Vous êtes hors du plateau : Auréo et Horizon ne s'ouvrent que depuis le réseau XGS. Méridien et Mon salaire restent disponibles."}
           </div>
         )}

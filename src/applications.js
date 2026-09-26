@@ -14,7 +14,8 @@ import { PhoneCall, CalendarClock, Wallet, Activity, Telescope } from "lucide-re
 // surSite : l'outil ne s'ouvre que depuis le reseau du plateau (sauf pour un
 // administrateur) ; la regle est appliquee par le worker du portail.
 //
-// roles : la tuile n'est affichee qu'a ces roles (Zenith : la direction).
+// roles : la tuile n'est affichee qu'a ces roles (Zenith : administration et
+// direction generale).
 // L'outil verifie lui-meme le role a l'ouverture.
 export const APPLICATIONS = [
   {
@@ -54,6 +55,6 @@ export const APPLICATIONS = [
     url: "/zenith/",
     icone: Telescope,
     surSite: true,
-    roles: ["admin", "super_admin"],
+    roles: ["admin", "super_admin", "direction"],
   },
 ];
